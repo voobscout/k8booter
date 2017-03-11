@@ -1,0 +1,4 @@
+#!ipxe
+# -*- conf-space -*-
+set dns 10.99.0.254
+autoboot net1
