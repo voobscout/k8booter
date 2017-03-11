@@ -259,6 +259,7 @@ write_files:
     content: |
       #!/usr/bin/env bash
 
+      PATH=/opt/bin:$PATH
       mkdir -p /mnt/tmp_install/bk
       cd /mnt/tmp_install/bk && \
       wget -c https://github.com/kubernetes-incubator/bootkube/releases/download/v0.3.11/bootkube.tar.gz && \
@@ -267,7 +268,7 @@ write_files:
 
       cd /var/lib/matchbox
       rm -rf /mnt/tmp_install/bk
-      bootkube render --asset-dir=assets --api-servers=https://node1.gsm-port.com:443 --api-server-alt-names=DNS=node1.gsm-port.com
+      /opt/bin/bootkube render --asset-dir=assets --api-servers=https://node1.gsm-port.com:443 --api-server-alt-names=DNS=node1.gsm-port.com
       logger -t MB_1st_run -s 'bootkube installed...'
 
   - path: /etc/modules-load.d/fuse.conf
