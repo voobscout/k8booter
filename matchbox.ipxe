@@ -5,11 +5,10 @@
 set base-url http://stable.release.core-os.net/amd64-usr/current
 set kernel-url ${base-url}/coreos_production_pxe.vmlinuz
 set initrd-url ${base-url}/coreos_production_pxe_image.cpio.gz
-set cloud-cfg-url https://gist.githubusercontent.com/voobscout/a9eb8f4ad1ba5d14a3ae44f6d0331eef/raw
+set cloud-cfg-url https://raw.githubusercontent.com/voobscout/k8booter/master/cloud-config.yml
+# set ssh-key ""
 
-#set ssh-key ""
-
-# sshkey=${ssh-key}
+# kernel ${kernel-url} cloud-config-url=${cloud-cfg-url} sshkey=${ssh-key}
 kernel ${kernel-url} cloud-config-url=${cloud-cfg-url}
 initrd ${initrd-url}
 boot
