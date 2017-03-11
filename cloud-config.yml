@@ -281,9 +281,6 @@ write_files:
         cat $node.json | jq -r ".metadata.ssh_authorized_keys |= . + [\"$(cat ~/.ssh/id_rsa.pub)\"]" > $node.json
       done
 
-      # mv /var/lib/matchbox/assets2mv/* /var/lib/matchbox/assets
-      # rm -rf /var/lib/matchbox/assets2mv
-
       logger -t MB_1st_run -s 'bootkube installed...'
 
   - path: /etc/modules-load.d/fuse.conf
