@@ -124,6 +124,19 @@ coreos:
         RemainAfterExit=yes
         ExecStart=/opt/bin/matchbox_setup.sh
 
+    - name: bootkube-setup.service
+      command: start
+      content: |
+        [Unit]
+        Description=Populate matchbox assets with bootkube
+        Requires=matchbox-setup.service
+        After=matchbox-setup.service
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/opt/bin/bootkube_setup.sh
+
     - name: matchbox.service
       command: start
       content: |
@@ -239,6 +252,23 @@ write_files:
       rm -rf /var/lib/matchbox/node.ipxe
 
       logger -t MB_1st_run -s 'cloned matchbox config from git repo...'
+
+  - path: /opt/bin/bootkube_setup.sh
+    permissions: 0755
+    owner: 'root:root'
+    content: |
+      #!/usr/bin/env bash
+
+      mkdir -p /mnt/tmp_install/bk
+      cd /mnt/tmp_install/bk && \
+      wget -c https://github.com/kubernetes-incubator/bootkube/releases/download/v0.3.11/bootkube.tar.gz && \
+      tar xvzf bootkube.tar.gz
+      mv /mnt/tmp_install/bk/bin/linux/* /opt/bin/
+
+      cd /var/lib/matchbox
+      rm -rf /mnt/tmp_install/bk
+      bootkube render --asset-dir=assets --api-servers=https://node1.gsm-port.com:443 --api-server-alt-names=DNS=node1.gsm-port.com
+      logger -t MB_1st_run -s 'bootkube installed...'
 
   - path: /etc/modules-load.d/fuse.conf
     permissions: 0644
