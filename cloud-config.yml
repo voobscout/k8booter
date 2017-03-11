@@ -234,7 +234,7 @@ write_files:
       cd /mnt/tmp_install/matchbox-v0.5.0-linux-amd64
       ./scripts/get-coreos stable 1298.5.0 .
 
-      mv ./coreos /var/lib/matchbox/assets/
+      mv ./coreos /var/lib/matchbox/assets
 
       logger -t MB_1st_run -s 'installed matchbox and generated certificates'
 
@@ -268,7 +268,11 @@ write_files:
 
       cd /var/lib/matchbox
       rm -rf /mnt/tmp_install/bk
-      /opt/bin/bootkube render --asset-dir=assets --api-servers=https://node1.gsm-port.com:443 --api-server-alt-names=DNS=node1.gsm-port.com
+      /opt/bin/bootkube render --asset-dir=assets2mv --api-servers=https://node1.gsm-port.com:443 --api-server-alt-names=DNS=node1.gsm-port.com
+
+      mv /var/lib/matchbox/assets2mv/* /var/lib/matchbox/assets
+      rm -rf /var/lib/matchbox/assets2mv
+
       logger -t MB_1st_run -s 'bootkube installed...'
 
   - path: /etc/modules-load.d/fuse.conf
