@@ -236,7 +236,7 @@ write_files:
 
       mv ./coreos /var/lib/matchbox/assets
 
-      logger -t MB_1st_run -s 'installed matchbox and generated certificates'
+      logger -t MB_1st_run -s 'installed matchbox...'
 
   - path: /opt/bin/matchbox_setup.sh
     permissions: 0755
@@ -250,6 +250,7 @@ write_files:
       rm -rf /var/lib/matchbox/cloud-config.yml
       rm -rf /var/lib/matchbox/matchbox.ipxe
       rm -rf /var/lib/matchbox/node.ipxe
+      rm -rf /var/lib/matchbox/tectonic-matchbox.yml
 
       logger -t MB_1st_run -s 'cloned matchbox config from git repo...'
 
@@ -266,12 +267,22 @@ write_files:
       tar xvzf bootkube.tar.gz
       mv /mnt/tmp_install/bk/bin/linux/* /opt/bin/
 
-      cd /var/lib/matchbox
+      cd /mnt/tmp_install
       rm -rf /mnt/tmp_install/bk
-      /opt/bin/bootkube render --asset-dir=assets2mv --api-servers=https://node1.gsm-port.com:443 --api-server-alt-names=DNS=node1.gsm-port.com
+      mkdir -p /mnt/tmp_install/bk
+      cd /mnt/tmp_install/bk
+      /opt/bin/bootkube render --asset-dir=assets --api-servers=https://node1.gsm-port.com:443 --api-server-alt-names=DNS=node1.gsm-port.com
 
-      mv /var/lib/matchbox/assets2mv/* /var/lib/matchbox/assets
-      rm -rf /var/lib/matchbox/assets2mv
+      # generate deployment keys
+      /usr/bin/ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
+
+      cd /var/lib/matchbox/groups
+      for node in 'node1' 'node2' 'node3'; do
+        cat $node.json | jq -r ".metadata.ssh_authorized_keys |= . + [\"$(cat ~/.ssh/id_rsa.pub)\"]" > $node.json
+      done
+
+      # mv /var/lib/matchbox/assets2mv/* /var/lib/matchbox/assets
+      # rm -rf /var/lib/matchbox/assets2mv
 
       logger -t MB_1st_run -s 'bootkube installed...'
 
