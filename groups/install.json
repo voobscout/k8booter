@@ -4,7 +4,7 @@
   "profile": "install-reboot",
   "metadata": {
     "coreos_channel": "stable",
-    "coreos_version": "current",
+    "coreos_version": "1298.5.0",
     "ignition_endpoint": "http://10.99.0.254:8080/ignition",
     "baseurl": "http://10.99.0.254:8080/assets/coreos"
   }
