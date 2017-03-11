@@ -274,7 +274,10 @@ write_files:
       /opt/bin/bootkube render --asset-dir=assets --api-servers=https://node1.gsm-port.com:443 --api-server-alt-names=DNS=node1.gsm-port.com
 
       # generate deployment keys
-      /usr/bin/ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
+      /usr/bin/ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa -C deployment@gsm-port.com
+      mkdir -p /home/core/.ssh
+      cp ~/.ssh/id_rsa* /home/core/.ssh
+      chown 500:500 /home/core/.ssh/id_rsa*
 
       cd /var/lib/matchbox/groups
       for node in 'node1' 'node2' 'node3'; do
@@ -282,6 +285,26 @@ write_files:
       done
 
       logger -t MB_1st_run -s 'bootkube installed...'
+
+  - path: /opt/bin/kubeconfig-install.sh
+    permissions: 0755
+    owner: 'root:root'
+    content: |
+      #!/usr/bin/env bash
+      cd /mnt/tmp_install/bk
+      for node in 'node1' 'node2' 'node3'; do
+        scp assets/auth/kubeconfig core@$node.gsm-port.com:/home/core/kubeconfig
+        ssh core@$node.gsm-port.com 'sudo mkdir -p /etc/kubernetes && sudo mv kubeconfig /etc/kubernetes/kubeconfig'
+      done
+
+  - path: /opt/bin/kubeconfig-controller-install.sh
+    permissions: 0755
+    owner: 'root:root'
+    content: |
+      #!/usr/bin/env bash
+      cd /mnt/tmp_install/bk
+      scp -r assets core@node1.gsm-port.com:/home/core
+      ssh core@node1.gsm-port.com 'sudo mkdir -p /opt/bootkube && sudo mv assets /opt/bootkube/assets && sudo systemctl start bootkube'
 
   - path: /etc/modules-load.d/fuse.conf
     permissions: 0644
