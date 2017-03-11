@@ -172,11 +172,12 @@ coreos:
           quay.io/coreos/dnsmasq -d -q \
           --interface=eth1 \
           --dhcp-range=10.99.0.10,10.99.0.253 \
-          --enable-tftp \
-          --tftp-root=/var/lib/tftpboot \
+          --dhcp-option=3 \
           --dhcp-userclass=set:ipxe,iPXE \
           --dhcp-boot=tag:#ipxe,undionly.kpxe \
           --dhcp-boot=tag:ipxe,http://matchbox.gsm-port.com:8080/boot.ipxe \
+          --enable-tftp \
+          --tftp-root=/var/lib/tftpboot \
           --address=/matchbox.gsm-port.com/10.99.0.254 \
           --log-queries \
           --log-dhcp
