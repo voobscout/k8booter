@@ -1,0 +1,11 @@
+{
+  "id": "coreos-install",
+  "name": "CoreOS Install",
+  "profile": "install-reboot",
+  "metadata": {
+    "coreos_channel": "stable",
+    "coreos_version": "cureent",
+    "ignition_endpoint": "http://10.99.0.254:8080/ignition",
+    "baseurl": "http://10.99.0.254:8080/assets/coreos"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "node2",
+  "name": "Worker Node",
+  "profile": "bootkube-worker",
+  "selector": {
+    "mac": "5a:00:00:5a:de:5c",
+    "os": "installed"
+  },
+  "metadata": {
+    "domain_name": "node2.gsm-port.com",
+    "etcd_endpoints": "node1.gsm-port.com:2379",
+    "k8s_dns_service_ip": "10.3.0.10",
+    "ssh_authorized_keys": [
+      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDUKXJgShJMrBFi6VvKCsCJO9c1wLA3ugL3LAJGsRO9KXdZGmLC74/s0KVw4uaWHoTz91qLPdnplSdLU3KDK7loIdKRBR8E4KJ1MiZKGIj7F9NsniiNetQkKvUazrhRx8nFOAYSPD4znkhrh53nXnsI2WDACt0CGNYX33hV3J/kblWYit/wcIEtJg1ivFmBrljtAMZpS2mBpAK0kySCY2BP+Ph8x+6EuCkH1w2J4Moa0fYkibF3K7O4cmcWAtD53eyr8YN4JKvAwTe+uXVsdFDUNkZvCdOLTDDRd7t7C+qL3nbJMv5jVoED0bBBfn7NfEfyqLOzXHmE4bfuMo7KBlH7 vod@agrajag.0.njk.li"
+    ]
+  }
+}
