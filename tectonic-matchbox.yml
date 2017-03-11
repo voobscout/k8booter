@@ -97,7 +97,7 @@ coreos:
             After=var-lib-docker.mount
             Requires=var-lib-docker.mount
 
-    - name: matchbox-install.service
+    - name: tectonic-install.service
       command: start
       content: |
         [Unit]
@@ -116,8 +116,8 @@ coreos:
         [Unit]
         Description=CoreOS matchbox Server
         Documentation=https://github.com/coreos/matchbox
-        After=matchbox-install.service
-        Requires=matchbox-install.service
+        After=tectonic-install.service
+        Requires=tectonic-install.service
 
         [Service]
         Environment="IMAGE=quay.io/coreos/matchbox"
@@ -183,18 +183,17 @@ write_files:
       #!/usr/bin/env bash
 
       cd /mnt/tmp_install && \
-      wget -c https://github.com/coreos/matchbox/releases/download/v0.5.0/matchbox-v0.5.0-linux-amd64.tar.gz && \
-      tar xzf matchbox-v0.5.0-linux-amd64.tar.gz
+      wget -c https://releases.tectonic.com/tectonic-1.5.3-tectonic.1.tar.gz -O tectonic.tar.gz && \
+      tar xvf tectonic.tar.gz
 
-      # chown --recursive core:core /mnt/tmp_install
+      chown --recursive core:core /mnt/tmp_install
 
       IP_eth0=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
       IP_eth1=$(ip addr show eth1 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
 
-      cd /mnt/tmp_install/matchbox-v0.5.0-linux-amd64/scripts/tls
+      cd /mnt/tmp_install/tectonic/matchbox/scripts/tls
 
-      export SAN=DNS.1:matchbox.gsm-port.com
-      # ,IP.1:$IP_eth0,IP.2:$IP_eth1
+      export SAN=DNS.1:matchbox.gsm-port.com,IP.1:$IP_eth0,IP.2:$IP_eth1
       ./cert-gen
 
       mkdir -p /etc/matchbox
@@ -203,7 +202,7 @@ write_files:
       mkdir -p /mnt/tmp_install/tls
       cp *.key *.crt /mnt/tmp_install/tls
 
-      cd /mnt/tmp_install/matchbox-v0.5.0-linux-amd64
+      cd /mnt/tmp_install/tectonic/matchbox
       ./scripts/get-coreos stable 1298.5.0 .
 
       mv ./coreos /var/lib/matchbox/assets/
@@ -215,9 +214,9 @@ write_files:
     owner: 'root:root'
     content: |
       #!/usr/bin/env bash
-      # cd /var/lib/matchbox
-      # grep -rl 'net0' ./ignition/ ./groups/ ./profiles/ | xargs sed -i 's/net0/net1/g'
-      # grep -rl 'sda' ./ignition/ ./groups/ ./profiles/ | xargs sed -i 's/sda/vda/g'
+      cd /var/lib/matchbox
+      grep -rl 'net0' ./ignition/ ./groups/ ./profiles/ | xargs sed -i 's/net0/net1/g'
+      grep -rl 'sda' ./ignition/ ./groups/ ./profiles/ | xargs sed -i 's/sda/vda/g'
 
   - path: /etc/modules-load.d/fuse.conf
     permissions: 0644
