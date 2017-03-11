@@ -114,7 +114,7 @@ coreos:
       command: start
       content: |
         [Unit]
-        Description=create bind mounts in /mnt
+        Description=Populate matchbox assets
         Requires=matchbox-install.service
         After=matchbox-install.service
         Before=matchbox.service
@@ -232,6 +232,10 @@ write_files:
 
       git clone https://github.com/voobscout/k8booter.git /var/lib/matchbox/tmp
       mv /var/lib/matchbox/tmp/* /var/lib/matchbox
+      rm -rf /var/lib/matchbox/tmp
+      rm -rf /var/lib/matchbox/cloud-config.yml
+      rm -rf /var/lib/matchbox/matchbox.ipxe
+      rm -rf /var/lib/matchbox/node.ipxe
 
       logger -t MB_1st_run -s 'cloned matchbox config from git repo...'
 
