@@ -1,0 +1,271 @@
+#cloud-config
+---
+coreos:
+  update:
+    group: stable
+    reboot-strategy: best-effort
+  units:
+    - name: 00-eth1-static.network
+      runtime: true
+      content: |
+        [Match]
+        Name=eth1
+
+        [Network]
+        DHCP=no
+        Address=10.99.0.254/24
+
+    - name: systemd-modules-load.service
+      command: restart
+
+    - name: format-ephemeral.service
+      command: start
+      content: |
+        [Unit]
+        Description=Formats the ephemeral drive
+        After=dev-vda.device
+        Requires=dev-vda.device
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/usr/sbin/wipefs -f /dev/vda
+        ExecStart=/usr/sbin/mkfs.ext4 -F /dev/vda
+
+    - name: mnt.mount
+      command: start
+      content: |
+        [Unit]
+        Description=Mount ephemeral to /mnt
+        Requires=format-ephemeral.service
+        After=format-ephemeral.service
+
+        [Mount]
+        What=/dev/vda
+        Where=/mnt
+        Type=ext4
+
+    - name: rbind-mount-points.service
+      command: start
+      content: |
+        [Unit]
+        Description=create bind mounts in /mnt
+        Requires=mnt.mount
+        After=mnt.mount
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/usr/bin/mkdir -p /mnt/docker
+        ExecStart=/usr/bin/mkdir -p /mnt/matchbox
+        ExecStart=/usr/bin/mkdir -p /mnt/tmp_install
+        ExecStart=/usr/bin/mkdir -p /var/lib/matchbox/assets
+
+    - name: var-lib-docker.mount
+      command: start
+      content: |
+        [Unit]
+        Description=bind mount /var/lib/docker to ephemeral
+        Requires=rbind-mount-points.service
+        After=rbind-mount-points.service
+
+        [Mount]
+        What=/mnt/docker
+        Where=/var/lib/docker
+        Type=none
+        Options=rbind
+
+    - name: var-lib-matchbox-assets.mount
+      command: start
+      content: |
+        [Unit]
+        Description=bind mount /var/lib/docker to ephemeral
+        Requires=rbind-mount-points.service
+        After=rbind-mount-points.service
+
+        [Mount]
+        What=/mnt/matchbox
+        Where=/var/lib/matchbox/assets
+        Type=none
+        Options=rbind
+
+    - name: docker.service
+      drop-ins:
+        - name: 10-wait-docker.conf
+          content: |
+            [Unit]
+            After=var-lib-docker.mount
+            Requires=var-lib-docker.mount
+
+    - name: matchbox-install.service
+      command: start
+      content: |
+        [Unit]
+        Description=Download and install latest tectonic from coreOS
+        After=docker.service
+        Requires=docker.service
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/opt/bin/matchbox_first_run.sh
+
+    - name: matchbox.service
+      command: start
+      content: |
+        [Unit]
+        Description=CoreOS matchbox Server
+        Documentation=https://github.com/coreos/matchbox
+        After=matchbox-install.service
+        Requires=matchbox-install.service
+
+        [Service]
+        Environment="IMAGE=quay.io/coreos/matchbox"
+        Environment="VERSION=v0.5.0"
+        Environment="MATCHBOX_ADDRESS=0.0.0.0:8080"
+        Environment="MATCHBOX_RPC_ADDRESS=0.0.0.0:8081"
+        Environment="MATCHBOX_LOG_LEVEL=debug"
+        ExecStartPre=/usr/bin/mkdir -p /etc/matchbox
+        ExecStartPre=/usr/bin/mkdir -p /var/lib/matchbox/assets
+        ExecStart=/usr/bin/rkt run \
+        --net=host \
+        --inherit-env \
+        --trust-keys-from-https \
+        --mount volume=data,target=/var/lib/matchbox \
+        --mount volume=config,target=/etc/matchbox \
+        --volume data,kind=host,source=/var/lib/matchbox \
+        --volume config,kind=host,source=/etc/matchbox \
+        ${IMAGE}:${VERSION}
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: matchbox-dnsmasq.service
+      command: start
+      content: |
+        [Unit]
+        After=matchbox.service
+        Requires=matchbox.service
+        Description=Matchbox DHCP, DNS, TFTP via dnsmasq
+
+        [Service]
+        TimeoutStartSec=0
+        ExecStartPre=/usr/bin/docker pull quay.io/coreos/dnsmasq
+        ExecStartPre=/usr/bin/docker run -d -ti \
+          --name matchbox-dnsmasq \
+          --cap-add=NET_ADMIN \
+          --net=host \
+          quay.io/coreos/dnsmasq -d -q \
+          --interface=eth1 \
+          --dhcp-range=10.99.0.10,10.99.0.253 \
+          --enable-tftp \
+          --tftp-root=/var/lib/tftpboot \
+          --dhcp-userclass=set:ipxe,iPXE \
+          --dhcp-boot=tag:#ipxe,undionly.kpxe \
+          --dhcp-boot=tag:ipxe,http://matchbox.gsm-port.com:8080/boot.ipxe \
+          --address=/matchbox.gsm-port.com/10.99.0.254 \
+          --log-queries \
+          --log-dhcp
+        ExecStart=/usr/bin/docker logs -f matchbox-dnsmasq
+        ExecStop=/usr/bin/docker stop matchbox-dnsmasq
+        ExecStop=/usr/bin/docker rm matchbox-dnsmasq
+        Restart=always
+        RestartSec=15s
+
+        [Install]
+        WantedBy=multi-user.target
+
+write_files:
+  - path: /opt/bin/matchbox_first_run.sh
+    permissions: 0755
+    owner: 'root:root'
+    content: |
+      #!/usr/bin/env bash
+
+      cd /mnt/tmp_install && \
+      wget -c https://github.com/coreos/matchbox/releases/download/v0.5.0/matchbox-v0.5.0-linux-amd64.tar.gz && \
+      tar xzf matchbox-v0.5.0-linux-amd64.tar.gz
+
+      # chown --recursive core:core /mnt/tmp_install
+
+      IP_eth0=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
+      IP_eth1=$(ip addr show eth1 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
+
+      cd /mnt/tmp_install/matchbox-v0.5.0-linux-amd64/scripts/tls
+
+      export SAN=DNS.1:matchbox.gsm-port.com
+      # ,IP.1:$IP_eth0,IP.2:$IP_eth1
+      ./cert-gen
+
+      mkdir -p /etc/matchbox
+      cp ca.crt server.crt server.key /etc/matchbox/
+
+      mkdir -p /mnt/tmp_install/tls
+      cp *.key *.crt /mnt/tmp_install/tls
+
+      cd /mnt/tmp_install/matchbox-v0.5.0-linux-amd64
+      ./scripts/get-coreos stable 1298.5.0 .
+
+      mv ./coreos /var/lib/matchbox/assets/
+
+      logger -t MB_1st_run -s 'Ready to start matchbox service'
+
+  - path: /opt/bin/matchbox_patch.sh
+    permissions: 0755
+    owner: 'root:root'
+    content: |
+      #!/usr/bin/env bash
+      # cd /var/lib/matchbox
+      # grep -rl 'net0' ./ignition/ ./groups/ ./profiles/ | xargs sed -i 's/net0/net1/g'
+      # grep -rl 'sda' ./ignition/ ./groups/ ./profiles/ | xargs sed -i 's/sda/vda/g'
+
+  - path: /etc/modules-load.d/fuse.conf
+    permissions: 0644
+    owner: 'root:root'
+    content: |
+      fuse
+
+  - path: /etc/modules-load.d/nfsd.conf
+    permissions: 0644
+    owner: 'root:root'
+    content: |
+      nfsd
+
+  - path: /etc/ssh/sshd_config
+    permissions: "0644"
+    owner: root:root
+    content: |
+      UsePrivilegeSeparation yes
+      ClientAliveInterval 180
+      KeyRegenerationInterval 3600
+      ServerKeyBits 1024
+      SyslogFacility AUTHPRIV
+      LogLevel INFO
+      LoginGraceTime 120
+      PermitRootLogin no
+      StrictModes yes
+      IgnoreRhosts yes
+      RhostsRSAAuthentication no
+      HostbasedAuthentication no
+      PermitEmptyPasswords no
+      PasswordAuthentication no
+      ChallengeResponseAuthentication no
+      RSAAuthentication yes
+      PubkeyAuthentication yes
+      X11Forwarding yes
+      X11DisplayOffset 10
+      PrintMotd yes
+      PrintLastLog yes
+      TCPKeepAlive yes
+      # Banner /etc/issue.net
+      AcceptEnv LANG LC_*
+      ClientAliveInterval 180
+      UseDNS no
+      AllowGroups core
+
+hostname: "matchbox.gsm-port.com"
+
+ssh_authorized_keys:
+  - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDUKXJgShJMrBFi6VvKCsCJO9c1wLA3ugL3LAJGsRO9KXdZGmLC74/s0KVw4uaWHoTz91qLPdnplSdLU3KDK7loIdKRBR8E4KJ1MiZKGIj7F9NsniiNetQkKvUazrhRx8nFOAYSPD4znkhrh53nXnsI2WDACt0CGNYX33hV3J/kblWYit/wcIEtJg1ivFmBrljtAMZpS2mBpAK0kySCY2BP+Ph8x+6EuCkH1w2J4Moa0fYkibF3K7O4cmcWAtD53eyr8YN4JKvAwTe+uXVsdFDUNkZvCdOLTDDRd7t7C+qL3nbJMv5jVoED0bBBfn7NfEfyqLOzXHmE4bfuMo7KBlH7 vod@agrajag.0.njk.li"
+  - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDNe0FPZcFG0/W16HM+/m7nMyLVlwf+26+huOrXeEYjPOpXOYC6PY5SwXEml5LTfla9ttf1BBbRZ9SYtiaGFR8oRAdaRh/2Hu2uFxnzGSGf0SEN/9bMJuTvu5tF3OigJiws6U/ZtPAMEQyiztArr4tKRtVGlNZyORzy168TrcUB7ReyEnMlxt4bjl1fWMfw652fELeC/4PyO034BvH7kwmaE0v+2pOw4MyAvmwjStKCp4MhP8/ttggnAAPFbnP0/x2Sdr9nv19RCp/g1nFZwIG0TgFcHwKvDXbGmZ/1yWulffAJValXFi0tHOt7E1Kfn6rYF8z33Un5gad/GCG5zzx vod@frogstar.0.njk.li"
+...
