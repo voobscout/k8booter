@@ -188,7 +188,7 @@ coreos:
           --net=host \
           quay.io/coreos/dnsmasq -d -q \
           --interface=eth1 \
-          --dhcp-range=10.99.0.100,10.99.0.250 \
+          --dhcp-range=10.99.0.100,10.99.0.250,infinite \
           --dhcp-option=3 \
           --dhcp-userclass=set:ipxe,iPXE \
           --dhcp-boot=tag:#ipxe,undionly.kpxe \
