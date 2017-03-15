@@ -15,6 +15,9 @@ coreos:
         DHCP=no
         Address=10.99.0.254/24
 
+        [Link]
+        MTUBytes=1450
+
     - name: systemd-modules-load.service
       command: restart
 
