@@ -193,6 +193,7 @@ coreos:
           --interface=eth1 \
           --dhcp-range=10.99.0.100,10.99.0.250,infinite \
           --dhcp-option=3 \
+          --dhcp-option=26,1450 \
           --dhcp-userclass=set:ipxe,iPXE \
           --dhcp-boot=tag:#ipxe,undionly.kpxe \
           --dhcp-boot=tag:ipxe,http://matchbox.gsm-port.com:8080/boot.ipxe \
