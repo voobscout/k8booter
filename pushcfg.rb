@@ -10,18 +10,17 @@ class Pushcfg < Sinatra::Base
 
   get '/node' do
     @src_files = WORK_DIR + 'assets/auth/kubeconfig'
-    setvar(env)
     respond
   end
 
   get '/controller' do
     @src_files = WORK_DIR + 'assets'
-    setvar
     respond
   end
 
   def respond
     begin
+      setvar
       install_cfg
       send(strip(@method).to_sym)
     rescue
