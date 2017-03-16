@@ -83,6 +83,7 @@ systemd:
         WantedBy=multi-user.target
     - name: pushcfg-client.service
       enabled: true
+      command: start
       contents: |
         [Unit]
         After=systemd-resolved.service

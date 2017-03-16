@@ -95,6 +95,7 @@ systemd:
         ExecStart=/opt/bootkube/bootkube-start
     - name: pushcfg-client.service
       enabled: true
+      command: start
       contents: |
         [Unit]
         After=systemd-resolved.service
