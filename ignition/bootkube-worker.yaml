@@ -82,6 +82,8 @@ systemd:
         [Install]
         WantedBy=multi-user.target
     - name: pushcfg-client.service
+      command: start
+      enabled: true
       contents: |
         [Unit]
         After=network.target
