@@ -96,7 +96,7 @@ systemd:
     - name: pushcfg-client.service
       contents: |
         [Unit]
-        After=bootkube.service
+        After=network.target
         Description=Ask matchbox for config
         [Service]
         Type=oneshot
