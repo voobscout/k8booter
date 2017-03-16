@@ -89,7 +89,7 @@ systemd:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/usr/bin/curl http://10.99.0.254/node
+        ExecStart=/usr/bin/curl http://10.99.0.254:8790/node
 
 storage:
   {{ if index . "pxe" }}

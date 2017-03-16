@@ -101,7 +101,7 @@ systemd:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/usr/bin/curl http://10.99.0.254/controller
+        ExecStart=/usr/bin/curl http://10.99.0.254:8790/controller
 
 storage:
   {{ if index . "pxe" }}
