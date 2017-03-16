@@ -221,7 +221,7 @@ coreos:
         [Service]
         ExecStartPre=/opt/bin/pushcfg_prepare.sh
         ExecStartPre=/usr/bin/docker pull ruby:latest
-        ExecStartPre=docker run -d \
+        ExecStartPre=docker run -ti -d \
         --name pushcfg \
         -w /usr/src/app \
         -p 8790:8790 \
@@ -232,7 +232,7 @@ coreos:
         ExecStart=/usr/bin/docker logs -f pushcfg
         ExecStop=/usr/bin/docker stop pushcfg
         ExecStop=/usr/bin/docker rm pushcfg
-        Restart=always
+        Restart=on-failure
         RestartSec=30s
 
         [Install]
