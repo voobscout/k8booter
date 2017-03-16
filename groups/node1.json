@@ -3,7 +3,7 @@
   "name": "Controller Node",
   "profile": "bootkube-controller",
   "selector": {
-    "mac": "5a:00:00:5a:de:57",
+    "mac": "5a:00:00:5c:61:25",
     "os": "installed"
   },
   "metadata": {
