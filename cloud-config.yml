@@ -219,7 +219,7 @@ coreos:
         Description=Sinatra listening for servers / pushing kubecfg
 
         [Service]
-        ExecStartPre=/opt/bin/pushcfg_prepare.sh
+        ExecStartPre=/opt/bin/pushcfg_setup.sh
         ExecStartPre=/usr/bin/docker pull ruby:latest
         ExecStartPre=/usr/bin/docker run -ti -d \
         --name pushcfg \
@@ -239,7 +239,7 @@ coreos:
         WantedBy=multi-user.target
 
 write_files:
-  - path: /opt/bin/pushcfg_prepare.sh
+  - path: /opt/bin/pushcfg_setup.sh
     permissions: 0755
     owner: 'root:root'
     content: |

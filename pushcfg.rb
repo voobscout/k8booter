@@ -29,15 +29,15 @@ class Pushcfg < Sinatra::Base
   end
 
   def install_cfg
-    `scp -r #{@src_files.expand_path.to_s} core@#{@ip}:/home/core`
+    `scp -oStrictHostKeyChecking=no -r #{@src_files.expand_path.to_s} core@#{@ip}:/home/core`
   end
 
   def controller
-    `ssh core@#{@ip} 'sudo mkdir -p /opt/bootkube && sudo mv /home/core/assets /opt/bootkube/assets && sudo systemctl start bootkube'`
+    `ssh -oStrictHostKeyChecking=no core@#{@ip} 'sudo mkdir -p /opt/bootkube && sudo mv /home/core/assets /opt/bootkube/assets && sudo systemctl start bootkube'`
   end
 
   def node
-    `ssh core@#{@ip} 'sudo mkdir -p /etc/kubernetes && sudo mv /home/core/kubeconfig /etc/kubernetes/kubeconfig'`
+    `ssh -oStrictHostKeyChecking=no core@#{@ip} 'sudo mkdir -p /etc/kubernetes && sudo mv /home/core/kubeconfig /etc/kubernetes/kubeconfig'`
   end
 
   def strip slash
