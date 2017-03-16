@@ -81,6 +81,15 @@ systemd:
         RestartSec=5
         [Install]
         WantedBy=multi-user.target
+    - name: pushcfg-client.service
+      contents: |
+        [Unit]
+        After=kubelet.service
+        Description=Ask matchbox for config
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/usr/bin/curl http://10.99.0.254/node
 
 storage:
   {{ if index . "pxe" }}

@@ -93,6 +93,16 @@ systemd:
         Type=simple
         WorkingDirectory=/opt/bootkube
         ExecStart=/opt/bootkube/bootkube-start
+    - name: pushcfg-client.service
+      contents: |
+        [Unit]
+        After=bootkube.service
+        Description=Ask matchbox for config
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/usr/bin/curl http://10.99.0.254/controller
+
 storage:
   {{ if index . "pxe" }}
   disks:
