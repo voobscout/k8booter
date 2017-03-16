@@ -227,7 +227,7 @@ coreos:
         -p 8790:8790 \
         -v /mnt/pushcfg:/usr/src/app \
         -v /mnt/tmp_install/bk:/opt/bootkube \
-        -v /root/.ssh:/usr/src/app/.ssh \
+        -v /root/.ssh:/root/.ssh \
         ruby:latest /bin/bash -c "bundle install && bundle exec ruby pushcfg.rb"
         ExecStart=/usr/bin/docker logs -f pushcfg
         ExecStop=/usr/bin/docker stop pushcfg
