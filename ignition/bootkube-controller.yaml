@@ -98,13 +98,15 @@ systemd:
       enabled: true
       contents: |
         [Unit]
-        After=network-online.target
-        Wants=network-online.target
+        After=systemd-resolved.service
+        Wants=systemd-resolved.service
         Description=Ask matchbox for config
         [Service]
         Type=oneshot
         RemainAfterExit=yes
         ExecStart=/usr/bin/curl http://10.99.0.254:8790/controller
+        [Install]
+        WantedBy=multi-user.target
 
 storage:
   {{ if index . "pxe" }}
