@@ -261,7 +261,7 @@ write_files:
     permissions: 0755
     owner: 'root:root'
     content: |
-      #!/usr/bin/env bash
+      #!/bin/bash
 
       mkdir -p /mnt/pushcfg
       # TODO: git clone vultrk8 repo instead
@@ -269,6 +269,7 @@ write_files:
       echo 'source "https://rubygems.org"' > /mnt/pushcfg/Gemfile
       echo 'gem "sinatra"' >> /mnt/pushcfg/Gemfile
       echo 'gem "cocaine"' >> /mnt/pushcfg/Gemfile
+      logger -t pushcfg_setup After running setup script
 
   - path: /opt/bin/matchbox_first_run.sh
     permissions: 0755
