@@ -232,8 +232,6 @@ coreos:
         Description=Sinatra listening for servers / pushing kubecfg
 
         [Service]
-        # -v /var/lib/docker:/var/lib/docker:rw \
-        # --net=host \
         ExecStartPre=/opt/bin/pushcfg_setup.sh
         ExecStartPre=/usr/bin/docker pull ruby:latest
         ExecStartPre=/usr/bin/docker run -ti -d \
@@ -262,6 +260,9 @@ write_files:
     owner: 'root:root'
     content: |
       #!/bin/bash
+
+      # -v /var/lib/docker:/var/lib/docker:rw \
+      # --net=host \
 
       mkdir -p /mnt/pushcfg
       # TODO: git clone vultrk8 repo instead
