@@ -232,6 +232,8 @@ coreos:
         Description=Sinatra listening for servers / pushing kubecfg
 
         [Service]
+        # -v /var/lib/docker:/var/lib/docker:rw \
+        # --net=host \
         ExecStartPre=/opt/bin/pushcfg_setup.sh
         ExecStartPre=/usr/bin/docker pull ruby:latest
         ExecStartPre=/usr/bin/docker run -ti -d \
@@ -240,8 +242,11 @@ coreos:
         -p 8790:8790 \
         -v /mnt/pushcfg:/usr/src/app \
         -v /mnt/tmp_install/bk:/opt/bootkube \
-        -v /root/.ssh:/root/.ssh \
-        ruby:latest /bin/bash -c "bundle install && bundle exec ruby pushcfg.rb"
+        -v /usr/bin/docker:/usr/bin/docker:ro \
+        -v /var/run/docker.sock:/var/run/docker.sock:rw \
+        -v /home/core/.ssh/id_rsa:/root/.ssh/id_rsa:ro \
+        -v /home/core/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub:ro \
+        ruby:latest /bin/bash -c "bundle install && bundle exec ruby -e 'require \"./pushcfg.rb\"'"
         ExecStart=/usr/bin/docker logs -f pushcfg
         ExecStop=/usr/bin/docker stop pushcfg
         ExecStop=/usr/bin/docker rm pushcfg
@@ -257,10 +262,13 @@ write_files:
     owner: 'root:root'
     content: |
       #!/usr/bin/env bash
+
       mkdir -p /mnt/pushcfg
+      # TODO: git clone vultrk8 repo instead
       curl https://raw.githubusercontent.com/voobscout/k8booter/master/pushcfg.rb -o /mnt/pushcfg/pushcfg.rb
       echo 'source "https://rubygems.org"' > /mnt/pushcfg/Gemfile
       echo 'gem "sinatra"' >> /mnt/pushcfg/Gemfile
+      echo 'gem "cocaine"' >> /mnt/pushcfg/Gemfile
 
   - path: /opt/bin/matchbox_first_run.sh
     permissions: 0755
