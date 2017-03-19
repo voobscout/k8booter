@@ -1,4 +1,5 @@
 #!ipxe
 # -*- conf-space -*-
+ifconf --configurator dhcp net1
 set dns 10.99.0.254
-autoboot net1
+chain http://10.99.0.254:8790/boot

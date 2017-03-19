@@ -98,7 +98,7 @@ systemd:
       command: start
       contents: |
         [Unit]
-        After=systemd-resolved.service
+        After=wait-for-dns.service
         Wants=systemd-resolved.service
         Description=Ask matchbox for config
         [Service]
@@ -114,7 +114,12 @@ storage:
     - device: /dev/vda
       wipe_table: true
       partitions:
-        - label: ROOT
+        - label: DOCKER
+          start: 0
+          size: 10485760
+        - label: GLUSTERFS
+          start: 0
+          size: 0
   filesystems:
     - name: root
       mount:
@@ -123,7 +128,8 @@ storage:
         create:
           force: true
           options:
-            - "-LROOT"
+            - "-LDOCKER"
+          path: "/var/lib/docker"
   {{end}}
   files:
     - path: /etc/kubernetes/kubelet.env
