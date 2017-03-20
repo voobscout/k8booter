@@ -349,10 +349,10 @@ write_files:
       cp ~/.ssh/id_rsa* /home/core/.ssh
       chown 500:500 /home/core/.ssh/id_rsa*
 
-      cd /var/lib/matchbox/groups
-      for node in 'node1' 'node2' 'node3'; do
-        cat $node.json | jq -r ".metadata.ssh_authorized_keys |= . + [\"$(cat ~/.ssh/id_rsa.pub)\"]" > $node.json
-      done
+      # cd /var/lib/matchbox/groups
+      # for node in 'node1' 'node2' 'node3'; do
+      #   cat $node.json | jq -r ".metadata.ssh_authorized_keys |= . + [\"$(cat ~/.ssh/id_rsa.pub)\"]" > $node.json
+      # done
 
       logger -t MB_1st_run -s 'bootkube installed...'
 

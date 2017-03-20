@@ -102,7 +102,7 @@ storage:
     - device: /dev/vda
       wipe_table: true
       partitions:
-        - label: DOCKER
+        - label: ROOT
           start: 0
           size: 10485760
         - label: GLUSTERFS
@@ -116,8 +116,7 @@ storage:
         create:
           force: true
           options:
-            - "-LDOCKER"
-          path: "/var/lib/docker"
+            - "-LROOT"
   {{end}}
   files:
     - path: /etc/kubernetes/kubelet.env
