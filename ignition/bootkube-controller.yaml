@@ -95,11 +95,10 @@ systemd:
         ExecStart=/opt/bootkube/bootkube-start
     - name: pushcfg-client.service
       enabled: true
-      command: start
       contents: |
         [Unit]
-        After=wait-for-dns.service
-        Wants=systemd-resolved.service
+        After=systemd-timesyncd.service
+        Wants=systemd-timesyncd.service
         Description=Ask matchbox for config
         [Service]
         Type=oneshot

@@ -154,8 +154,10 @@ class Pushcfg < Sinatra::Base
   end
 
   def run_cmd
-    @docker.run(cmd: @scp.command(@scp_command))
-    @docker.run(cmd: @ssh.command(@ssh_command.merge(cmd: cmd[@method.to_sym])))
+    @scp.run(@scp_command)
+    @ssh.run(@ssh_command.merge(cmd: cmd[@method.to_sym]))
+    # @docker.run(cmd: @scp.command(@scp_command))
+    # @docker.run(cmd: @ssh.command(@ssh_command.merge(cmd: cmd[@method.to_sym])))
     # puts @docker.command(cmd: @scp.command(@scp_command))
     # puts @docker.command(cmd: @ssh.command(@ssh_command.merge(cmd: cmd[@method.to_sym])))
   end
