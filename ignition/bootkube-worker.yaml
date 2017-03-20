@@ -86,8 +86,10 @@ systemd:
       command: start
       contents: |
         [Unit]
-        After=systemd-timesyncd.service
-        Wants=systemd-timesyncd.service
+        After=network-online.target
+        After=docker.service
+        Requires=network-online.target
+        Requires=docker.service
         Description=Ask matchbox for config
         [Service]
         Type=oneshot

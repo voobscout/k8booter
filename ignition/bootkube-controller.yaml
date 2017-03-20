@@ -97,9 +97,11 @@ systemd:
       enabled: true
       contents: |
         [Unit]
-        After=systemd-timesyncd.service
-        Wants=systemd-timesyncd.service
-        Description=Ask matchbox for config
+        After=network-online.target
+        After=docker.service
+        Requires=network-online.target
+        Requires=docker.service
+        Description=ask for kube config
         [Service]
         Type=oneshot
         RemainAfterExit=yes
