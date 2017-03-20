@@ -150,8 +150,7 @@ class Pushcfg < Sinatra::Base
                    dst: ('core@' + @ip)
                    }
 
-    volumes = %w(/home/core/.ssh/id_rsa:/root/.ssh/id_rsa:ro /home/core/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub:ro).join(' -v ')
-    @docker = Cocaine::CommandLine.new("/usr/bin/docker", "-d --rm -ti -v #{volumes} ruby :cmd")
+    @docker = Cocaine::CommandLine.new("/usr/bin/docker", "-d --rm -ti --volumes-from pushcfg ruby :cmd")
   end
 
   def run_cmd
