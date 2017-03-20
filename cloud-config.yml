@@ -302,7 +302,7 @@ write_files:
       cp *.key *.crt /mnt/tmp_install/tls
 
       cd /mnt/tmp_install/matchbox-v0.5.0-linux-amd64
-      ./scripts/get-coreos stable 1298.5.0 .
+      ./scripts/get-coreos stable 1298.6.0 .
 
       mv ./coreos /var/lib/matchbox/assets
 
