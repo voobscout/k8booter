@@ -237,12 +237,11 @@ coreos:
         ExecStartPre=/usr/bin/docker run -ti -d \
         --name pushcfg \
         -w /usr/src/app \
-        -p 8790:8790 \
+        --net host \
         -v /mnt/pushcfg:/usr/src/app \
         -v /var/lib/matchbox:/var/lib/matchbox:rw \
         -v /mnt/tmp_install/bk:/opt/bootkube \
         -v /etc/hostname:/opt/bootkube/hostname:ro \
-        -v /proc/net/arp:/opt/bootkube/arp:ro \
         -v /usr/bin/docker:/usr/bin/docker:ro \
         -v /var/run/docker.sock:/var/run/docker.sock:rw \
         -v /home/core/.ssh/id_rsa:/root/.ssh/id_rsa:ro \

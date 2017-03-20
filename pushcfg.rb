@@ -84,7 +84,8 @@ module Cfg
   end
 
   def mac_addr
-    (Pushcfg::WORK_DIR + 'arp').read.lines[1..-1].grep(/#{@ip}/i).first.split(" ")[3]
+    addr = (Pathname.new('/proc/net/arp')).read.lines[1..-1].grep(/#{@ip}/i).first
+    addr ? addr.split(" ")[3] : (raise ArgumentError, "mac address for #{@ip} not found!")
   end
 
   def ssh_key_local
