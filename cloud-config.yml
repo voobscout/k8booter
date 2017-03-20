@@ -232,7 +232,7 @@ coreos:
         [Install]
         WantedBy=multi-user.target
 
-    - name: install-weave.service
+    - name: weave-install.service
       command: start
       enable: true
       content: |
@@ -293,6 +293,36 @@ coreos:
         [Install]
         WantedBy=multi-user.target
 
+    - name: softethervpn.service
+      enable: true
+      command: start
+      content: |
+        [Unit]
+        After=pushcfg.service
+        Description=Softether vpn server
+
+        [Service]
+        ExecStartPre=/usr/bin/docker pull voobscout/base-deb:softethervpn
+        ExecStartPre=/usr/bin/docker run -d \
+        --name softethervpn \
+        --cap-add NET_ADMIN \
+        -p 4443:443/tcp \
+        -p 992:992/tcp \
+        -p 5555:5555/tcp \
+        -p 11941:1194/tcp \
+        -p 11941:1194/udp \
+        -p 500:500/udp \
+        -p 4500:4500/udp \
+        voobscout/base-deb:softethervpn
+        ExecStart=/usr/bin/docker exec -ti softethervpn /bin/bash -c 'tail -f /var/log/vpnserver/**/*.log'
+        ExecStop=/usr/bin/docker stop softethervpn
+        ExecStop=/usr/bin/docker rm softethervpn
+        Restart=on-failure
+        RestartSec=30s
+
+        [Install]
+        WantedBy=multi-user.target
+
 write_files:
   - path: /opt/bin/pushcfg_setup.sh
     permissions: 0755
@@ -328,8 +358,7 @@ write_files:
 
       cd /mnt/tmp_install/matchbox-v0.5.0-linux-amd64/scripts/tls
 
-      export SAN=DNS.1:matchbox.gsm-port.com
-      # ,IP.1:$IP_eth0,IP.2:$IP_eth1
+      export SAN=DNS.1:matchbox.gsm-port.com,IP.1:$IP_eth0,IP.2:$IP_eth1
       ./cert-gen
 
       mkdir -p /etc/matchbox
@@ -470,6 +499,15 @@ write_files:
       # -A INPUT -s 172.17.0.0/16 -j ACCEPT
       -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
       -A INPUT -p tcp -m tcp --dport 22 -m limit --limit 10/min --limit-burst 100 -j ACCEPT
+      # Softether connections:
+      -A INPUT -p tcp -m tcp --dport 4443 -m limit --limit 10/min --limit-burst 100 -j ACCEPT
+      -A INPUT -p tcp -m tcp --dport 992 -m limit --limit 10/min --limit-burst 100 -j ACCEPT
+      -A INPUT -p tcp -m tcp --dport 5555 -m limit --limit 10/min --limit-burst 100 -j ACCEPT
+      -A INPUT -p tcp -m tcp --dport 11941 -m limit --limit 10/min --limit-burst 100 -j ACCEPT
+      -A INPUT -p udp -m udp --dport 11941 -m limit --limit 10/min --limit-burst 100 -j ACCEPT
+      -A INPUT -p udp -m udp --dport 500 -m limit --limit 10/min --limit-burst 100 -j ACCEPT
+      -A INPUT -p udp -m udp --dport 4500 -m limit --limit 10/min --limit-burst 100 -j ACCEPT
+      # Weave.works connections:
       # -A INPUT -p tcp -m tcp --dport 6783 -m limit --limit 10/min --limit-burst 100 -j ACCEPT
       # -A INPUT -p udp -m udp --dport 6783 -m limit --limit 10/min --limit-burst 100 -j ACCEPT
       # -A INPUT -p udp -m udp --dport 6784 -m limit --limit 10/min --limit-burst 100 -j ACCEPT
@@ -478,7 +516,7 @@ write_files:
       -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT
       -A INPUT -p icmp -m icmp --icmp-type 11 -j ACCEPT
       # -A INPUT -d 224.0.0.252/24 -p udp -m limit --limit 10/min --limit-burst 100 -j ACCEPT
-      -A INPUT -m limit --limit 5/min -j LOG --log-prefix "InDrop " --log-level 4
+      -A INPUT -m limit --limit 5/hour -j LOG --log-prefix "InDrop " --log-level warning
       COMMIT
       # rules end
 
