@@ -303,7 +303,7 @@ coreos:
 
         [Service]
         ExecStartPre=/usr/bin/docker pull voobscout/base-deb:softethervpn
-        ExecStartPre=/usr/bin/docker run -d -ti \
+        ExecStartPre=/usr/bin/docker run -d \
         --name softethervpn \
         --cap-add NET_ADMIN \
         -p 4443:443/tcp \
@@ -314,7 +314,7 @@ coreos:
         -p 500:500/udp \
         -p 4500:4500/udp \
         voobscout/base-deb:softethervpn
-        ExecStart=/usr/bin/docker exec -ti softethervpn /bin/bash -c 'tail -f /var/log/vpnserver/**/*.log'
+        ExecStart=/usr/bin/docker exec -i softethervpn /bin/bash -c 'TERM=linux tail -f /var/log/vpnserver/**/*.log'
         ExecStop=/usr/bin/docker stop softethervpn
         ExecStop=/usr/bin/docker rm softethervpn
         Restart=on-failure
