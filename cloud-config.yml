@@ -303,7 +303,7 @@ coreos:
 
         [Service]
         ExecStartPre=/usr/bin/docker pull voobscout/base-deb:softethervpn
-        ExecStartPre=/usr/bin/docker run -d \
+        ExecStartPre=/usr/bin/docker run -d -ti \
         --name softethervpn \
         --cap-add NET_ADMIN \
         -p 4443:443/tcp \
