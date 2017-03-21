@@ -337,6 +337,7 @@ coreos:
       content: |
         [Unit]
         After=pushcfg.service
+        Requires=bridge-management-eth1.service
         Description=Softether vpn server
 
         [Service]
