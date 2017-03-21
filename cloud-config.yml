@@ -148,11 +148,13 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/usr/bin/docker network create --driver macvlan \
+        ExecStart=/usr/bin/docker network create --driver bridge \
         --subnet 10.99.0.0/24 \
         --gateway 10.99.0.1 \
-        -o parent=eth1 \
-        -o com.docker.network.driver.mtu=1450 management
+        --aux-address "DefaultGatewayIPv4=10.99.0.254" \
+        -o com.docker.network.driver.mtu=1450 \
+        -o com.docker.network.bridge.name=management management
+        ExecStart=/usr/sbin/brctl addif management eth1
 
     - name: weave-install.service
       command: start
