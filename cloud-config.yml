@@ -244,7 +244,9 @@ coreos:
         quay.io/coreos/matchbox:latest \
         -address=0.0.0.0:8080 \
         -rpc-address=0.0.0.0:8081 \
-        -log-level=debug
+        -log-level=debug \
+        -data-path /etc/matchbox \
+        -assets-path /var/lib/matchbox
         ExecStartPre=/usr/bin/docker network connect --ip 10.99.0.254 management matchbox
         ExecStartPre=/usr/bin/docker start matchbox
         ExecStart=/usr/bin/docker logs -f matchbox
@@ -391,14 +393,9 @@ write_files:
       wget -c https://github.com/coreos/matchbox/releases/download/v0.5.0/matchbox-v0.5.0-linux-amd64.tar.gz && \
       tar xzf matchbox-v0.5.0-linux-amd64.tar.gz
 
-      # chown --recursive core:core /mnt/tmp_install
-
-      IP_eth0=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
-      IP_eth1=$(ip addr show eth1 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
-
       cd /mnt/tmp_install/matchbox-v0.5.0-linux-amd64/scripts/tls
 
-      export SAN=DNS.1:matchbox.gsm-port.com,IP.1:$IP_eth0,IP.2:$IP_eth1
+      export SAN=IP.1:10.99.0.254
       ./cert-gen
 
       mkdir -p /etc/matchbox
