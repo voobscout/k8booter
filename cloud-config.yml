@@ -29,16 +29,16 @@ coreos:
     #     DHCP=no
     #     Address=10.99.0.254/24
 
-    - name: custom-mtu.service
-      command: start
-      content: |
-        [Unit]
-        Before=docker.service
+    # - name: custom-mtu.service
+    #   command: start
+    #   content: |
+    #     [Unit]
+    #     Before=docker.service
 
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        ExecStart=/usr/bin/ip link set dev eth1 mtu 1450
+    #     [Service]
+    #     Type=oneshot
+    #     RemainAfterExit=yes
+    #     ExecStart=/usr/bin/ip link set dev eth1 mtu 1450
 
     - name: 10-weave.network
       runtime: false
