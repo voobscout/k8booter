@@ -33,7 +33,6 @@ coreos:
       command: start
       content: |
         [Unit]
-        Requires=20-management-static.network
         Before=docker.service
 
         [Service]
