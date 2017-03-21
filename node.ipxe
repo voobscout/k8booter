@@ -2,4 +2,4 @@
 # -*- conf-space -*-
 ifconf --configurator dhcp net1
 set dns 10.99.0.254
-chain http://10.99.0.254:8790/boot
+chain http://10.99.0.250:8790/boot
