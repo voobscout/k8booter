@@ -52,9 +52,9 @@ coreos:
     - name: systemd-modules-load.service
       command: restart
 
-    - name: iptables-restore.service
-      enable: true
-      command: start
+    # - name: iptables-restore.service
+    #   enable: true
+    #   command: start
 
     - name: format-ephemeral.service
       command: start
