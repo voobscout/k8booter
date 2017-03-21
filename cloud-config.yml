@@ -147,12 +147,12 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/usr/bin/docker network create --driver bridge \
+        ExecStart=/usr/bin/docker network create --driver macvlan \
         --subnet 10.99.0.0/24 \
         --gateway 10.99.0.1 \
         -o com.docker.network.driver.mtu=1450 \
         -o com.docker.network.bridge.name=management management
-        ExecStart=/usr/sbin/brctl addif management eth1
+        # ExecStart=/usr/sbin/brctl addif management eth1
         # --aux-address "DefaultGatewayIPv4=10.99.0.254" <-- useful for actual lans
 
     - name: weave-install.service
@@ -355,9 +355,9 @@ coreos:
         -p 4500:4500/udp \
         voobscout/base-deb:softethervpn
         ExecStartPre=/usr/bin/docker network connect --ip 10.99.0.200 management softethervpn
-        ExecStartPre=/usr/bin/docker start softethervpn
-        ExecStartPre=/usr/bin/docker exec -ti softethervpn ip addr
-        ExecStart=/usr/bin/docker exec -ti softethervpn /bin/bash -c "TERM=linux tail -f /var/log/vpnserver/**/*.log"
+        ExecStart=/usr/bin/docker start softethervpn
+        # ExecStartPre=/usr/bin/docker exec -ti softethervpn ip addr
+        # ExecStart=/usr/bin/docker exec -ti softethervpn /bin/bash -c "TERM=linux tail -f /var/log/vpnserver/**/*.log"
         ExecStop=/usr/bin/docker stop softethervpn
         ExecStop=/usr/bin/docker rm softethervpn
         Restart=on-failure
