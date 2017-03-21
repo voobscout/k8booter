@@ -136,19 +136,13 @@ coreos:
             After=var-lib-docker.mount
             Requires=var-lib-docker.mount
 
-    - name: docker.service
-      drop-ins:
-        - name: 20-startup-options.conf
-          content: |
-            [Service]
-            Environment=DOCKER_OPTS='--bip 172.20.0.1/16 --fixed-cidr 172.20.0.1/16'
-
     - name: bridge-management-eth1.service
       enable: true
       command: start
       content: |
         [Unit]
         After=docker.service
+        Requires=docker.service
         Description=Create additional docker network and bridge eth1 into it
 
         [Service]
@@ -367,6 +361,12 @@ coreos:
         WantedBy=multi-user.target
 
 write_files:
+  - path: /run/flannel/flannel_docker_opts.env
+    permissions: 0644
+    owner: 'root:root'
+    content: |
+      DOCKER_OPTS='--bip 172.20.0.1/16 --fixed-cidr 172.20.0.1/16'
+
   - path: /opt/bin/pushcfg_setup.sh
     permissions: 0755
     owner: 'root:root'
