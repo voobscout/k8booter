@@ -152,7 +152,6 @@ coreos:
         --subnet 10.99.0.0/24 \
         --gateway 10.99.0.1 \
         -o parent=eth1 \
-        -o com.docker.network.bridge.name=management \
         -o com.docker.network.driver.mtu=1450 management
 
     - name: weave-install.service
@@ -235,13 +234,13 @@ coreos:
         [Service]
         Environment="IMAGE=quay.io/coreos/matchbox"
         Environment="VERSION=latest"
-        ExecStartPre=/usr/bin/docker create \
+        ExecStartPre=/usr/bin/docker create -ti \
         --name matchbox \
         --net default \
         -p 8080:8080 \
         -p 8081:8081 \
-        -v /var/lib/matchbox:/var/lib/matchbox:Z \
-        -v /etc/matchbox:/etc/matchbox:Z,ro \
+        -v /var/lib/matchbox:/var/lib/matchbox:rw \
+        -v /etc/matchbox:/etc/matchbox:ro \
         ${IMAGE}:${VERSION} \
         -address=0.0.0.0:8080 \
         -rpc-address=0.0.0.0:8081 \
@@ -304,11 +303,10 @@ coreos:
         [Service]
         ExecStartPre=/opt/bin/pushcfg_setup.sh
         ExecStartPre=/usr/bin/docker pull ruby:latest
-        ExecStartPre=/usr/bin/docker run -ti -d \
+        ExecStartPre=/usr/bin/docker create -ti \
         --name pushcfg \
+        --net default \
         -w /usr/src/app \
-        --net management \
-        --ip 10.99.0.250 \
         -v /mnt/pushcfg:/usr/src/app \
         -v /var/lib/matchbox:/var/lib/matchbox:rw \
         -v /mnt/tmp_install/bk:/opt/bootkube \
@@ -318,6 +316,8 @@ coreos:
         -v /home/core/.ssh/id_rsa:/root/.ssh/id_rsa:ro \
         -v /home/core/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub:ro \
         ruby:latest /bin/bash -c "bundle install && bundle exec ruby -e 'require \"./pushcfg.rb\"'"
+        ExecStartPre=/usr/bin/docker network connect --ip 10.99.0.250 management pushcfg
+        ExecStartPre=/usr/bin/docker start pushcfg
         ExecStart=/usr/bin/docker logs -f pushcfg
         ExecStop=/usr/bin/docker stop pushcfg
         ExecStop=/usr/bin/docker rm pushcfg
@@ -373,9 +373,6 @@ write_files:
     content: |
       #!/bin/bash
 
-      # -v /var/lib/docker:/var/lib/docker:rw \
-      # --net=host \
-
       mkdir -p /mnt/pushcfg
       # TODO: git clone vultrk8 repo instead
       curl https://raw.githubusercontent.com/voobscout/k8booter/master/pushcfg.rb -o /mnt/pushcfg/pushcfg.rb
@@ -413,6 +410,7 @@ write_files:
       cd /mnt/tmp_install/matchbox-v0.5.0-linux-amd64
       ./scripts/get-coreos stable 1298.6.0 .
 
+      mkdir -p /var/lib/matchbox/assets
       mv ./coreos /var/lib/matchbox/assets
 
       logger -t MB_1st_run -s 'installed matchbox...'
@@ -422,9 +420,6 @@ write_files:
     owner: 'root:root'
     content: |
       #!/usr/bin/env bash
-
-      mkdir -p /etc/matchbox
-      mkdir -p /var/lib/matchbox/assets
 
       git clone https://github.com/voobscout/k8booter.git /mnt/tmp_install/k8booter
       cp --recursive /mnt/tmp_install/k8booter/ignition /var/lib/matchbox
