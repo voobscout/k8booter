@@ -301,6 +301,7 @@ coreos:
       content: |
         [Unit]
         After=matchbox-dnsmasq.service
+        Requires=matchbox-dnsmasq.service
         Description=Sinatra listening for servers / pushing kubecfg
 
         [Service]
