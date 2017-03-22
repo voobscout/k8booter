@@ -29,16 +29,16 @@ coreos:
     #     DHCP=no
     #     Address=10.99.0.254/24
 
-    # - name: custom-mtu.service
-    #   command: start
-    #   content: |
-    #     [Unit]
-    #     Before=docker.service
+    - name: custom-mtu.service
+      command: start
+      content: |
+        [Unit]
+        Before=docker.service
 
-    #     [Service]
-    #     Type=oneshot
-    #     RemainAfterExit=yes
-    #     ExecStart=/usr/bin/ip link set dev eth1 mtu 1450
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/usr/bin/ip link set dev eth1 mtu 1450
 
     - name: 10-weave.network
       runtime: false
@@ -151,6 +151,7 @@ coreos:
         --subnet 10.99.0.0/24 \
         --gateway 10.99.0.1 \
         -o com.docker.network.driver.mtu=1450 \
+        -o parent=eth1 \
         -o com.docker.network.bridge.name=management management
         # ExecStart=/usr/sbin/brctl addif management eth1
         # --aux-address "DefaultGatewayIPv4=10.99.0.254" <-- useful for actual lans
@@ -356,8 +357,6 @@ coreos:
         voobscout/base-deb:softethervpn
         ExecStartPre=/usr/bin/docker network connect --ip 10.99.0.200 management softethervpn
         ExecStart=/usr/bin/docker start softethervpn
-        # ExecStartPre=/usr/bin/docker exec -ti softethervpn ip addr
-        # ExecStart=/usr/bin/docker exec -ti softethervpn /bin/bash -c "TERM=linux tail -f /var/log/vpnserver/**/*.log"
         ExecStop=/usr/bin/docker stop softethervpn
         ExecStop=/usr/bin/docker rm softethervpn
         Restart=on-failure
@@ -559,3 +558,5 @@ hostname: "matchbox.gsm-port.com"
 ssh_authorized_keys:
   - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDUKXJgShJMrBFi6VvKCsCJO9c1wLA3ugL3LAJGsRO9KXdZGmLC74/s0KVw4uaWHoTz91qLPdnplSdLU3KDK7loIdKRBR8E4KJ1MiZKGIj7F9NsniiNetQkKvUazrhRx8nFOAYSPD4znkhrh53nXnsI2WDACt0CGNYX33hV3J/kblWYit/wcIEtJg1ivFmBrljtAMZpS2mBpAK0kySCY2BP+Ph8x+6EuCkH1w2J4Moa0fYkibF3K7O4cmcWAtD53eyr8YN4JKvAwTe+uXVsdFDUNkZvCdOLTDDRd7t7C+qL3nbJMv5jVoED0bBBfn7NfEfyqLOzXHmE4bfuMo7KBlH7 vod@agrajag.0.njk.li"
 ...
+# ExecStartPre=/usr/bin/docker exec -ti softethervpn ip addr
+# ExecStart=/usr/bin/docker exec -ti softethervpn /bin/bash -c "TERM=linux tail -f /var/log/vpnserver/**/*.log"
