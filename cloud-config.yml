@@ -5,29 +5,15 @@ coreos:
     group: stable
     reboot-strategy: best-effort
   units:
-    # - name: 00-eth1-static.network
-    #   runtime: true
-    #   content: |
-    #     [Match]
-    #     Name=eth1
+    - name: 00-eth1-static.network
+      runtime: true
+      content: |
+        [Match]
+        Name=eth1
 
-    #     [Network]
-    #     Bridge=management
-
-    # - name: 20-management.netdev
-    #   content: |
-    #     [NetDev]
-    #     Name=management
-    #     Kind=bridge
-
-    # - name: 20-management-static.network
-    #   content: |
-    #     [Match]
-    #     Name=management
-
-    #     [Network]
-    #     DHCP=no
-    #     Address=10.99.0.254/24
+        [Network]
+        DHCP=no
+        Address=10.99.0.11/24
 
     - name: custom-mtu.service
       command: start
@@ -52,9 +38,9 @@ coreos:
     - name: systemd-modules-load.service
       command: restart
 
-    # - name: iptables-restore.service
-    #   enable: true
-    #   command: start
+    - name: iptables-restore.service
+      enable: true
+      command: start
 
     - name: format-ephemeral.service
       command: start
