@@ -147,9 +147,10 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/usr/bin/docker network create --driver macvlan \
+        ExecStart=/usr/bin/docker network create --driver ipvlan \
         --subnet 10.99.0.0/24 \
         --gateway 10.99.0.1 \
+        -o ipvlan_mode=l2 \
         -o parent=eth1 \
         management
 
@@ -343,6 +344,8 @@ coreos:
         ExecStartPre=/usr/bin/docker create \
         --name softethervpn \
         --cap-add NET_ADMIN \
+        --cap-add NET_RAW \
+        --cap-add NET_BROADCAST \
         --net default \
         -p 4443:443/tcp \
         -p 992:992/tcp \
@@ -367,7 +370,7 @@ write_files:
     permissions: 0644
     owner: 'root:root'
     content: |
-      DOCKER_OPTS='--bip 172.20.0.1/16 --fixed-cidr 172.20.0.1/16'
+      DOCKER_OPTS='--experimental --bip 172.20.0.1/16 --fixed-cidr 172.20.0.1/16'
 
   - path: /opt/bin/pushcfg_setup.sh
     permissions: 0755
@@ -487,6 +490,13 @@ write_files:
     owner: 'root:root'
     content: |
       nfsd
+
+  - path: /etc/modules-load.d/arp-related.conf
+    permissions: 0644
+    owner: 'root:root'
+    content: |
+      ebt_arp
+      arp_tables
 
   - path: /etc/ssh/sshd_config
     permissions: "0644"
