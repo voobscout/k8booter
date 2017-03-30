@@ -348,6 +348,31 @@ coreos:
         [Install]
         WantedBy=multi-user.target
 
+    - name: tshark.service
+      enable: true
+      command: start
+      content: |
+        [Unit]
+        After=docker.service network-online.target
+        Requires=docker.service network-online.target
+        Description=tshark machine
+
+        [Service]
+        ExecStartPre=/usr/bin/docker pull voobscout/docker-coreos-vultr
+        ExecStartPre=/usr/bin/docker run -d -ti \
+        --name tshark \
+        --privileged \
+        --net host \
+        voobscout/docker-coreos-vultr
+        ExecStart=/usr/bin/docker logs -f tshark
+        ExecStop=/usr/bin/docker stop tshark
+        ExecStop=/usr/bin/docker rm tshark
+        Restart=on-failure
+        RestartSec=30s
+
+        [Install]
+        WantedBy=multi-user.target
+
 write_files:
   - path: /run/flannel/flannel_docker_opts.env
     permissions: 0644
