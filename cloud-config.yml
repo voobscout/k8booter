@@ -218,8 +218,7 @@ coreos:
         Requires=matchbox-setup.service
 
         [Service]
-        Environment="IMAGE=quay.io/coreos/matchbox"
-        Environment="VERSION=latest"
+        ExecStartPre=/usr/bin/docker pull quay.io/coreos/matchbox:latest
         ExecStartPre=/usr/bin/docker create -ti \
         --name matchbox \
         --net default \
@@ -260,12 +259,11 @@ coreos:
           quay.io/coreos/dnsmasq -d -q \
           --interface=eth1 \
           --dhcp-range=10.99.0.100,10.99.0.150,infinite \
-          --address=/matchbox.gsm-port.com/10.99.0.254 \
           --dhcp-option=3 \
           --dhcp-option=26,1450 \
           --dhcp-userclass=set:ipxe,iPXE \
           --dhcp-boot=tag:#ipxe,undionly.kpxe \
-          --dhcp-boot=tag:ipxe,http://matchbox.gsm-port.com:8080/boot.ipxe \
+          --dhcp-boot=tag:ipxe,http://10.99.0.254:8080/boot.ipxe \
           --enable-tftp \
           --tftp-root=/var/lib/tftpboot \
           --log-queries \
@@ -274,7 +272,7 @@ coreos:
         ExecStop=/usr/bin/docker stop matchbox-dnsmasq
         ExecStop=/usr/bin/docker rm matchbox-dnsmasq
         Restart=always
-        RestartSec=15s
+        RestartSec=30s
 
         [Install]
         WantedBy=multi-user.target
