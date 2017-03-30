@@ -229,9 +229,7 @@ coreos:
         quay.io/coreos/matchbox:latest \
         -address=0.0.0.0:8080 \
         -rpc-address=0.0.0.0:8081 \
-        -log-level=debug \
-        -data-path /etc/matchbox \
-        -assets-path /var/lib/matchbox
+        -log-level=debug
         ExecStartPre=/usr/bin/docker network connect --ip 10.99.0.254 management matchbox
         ExecStartPre=/usr/bin/docker start matchbox
         ExecStart=/usr/bin/docker logs -f matchbox
@@ -278,8 +276,8 @@ coreos:
         WantedBy=multi-user.target
 
     - name: pushcfg.service
-      enable: false
-      # command: start
+      enable: true
+      command: start
       content: |
         [Unit]
         After=matchbox-dnsmasq.service
