@@ -256,8 +256,7 @@ coreos:
         ExecStartPre=/usr/bin/docker run -d -ti \
           --name matchbox-dnsmasq \
           --cap-add=NET_ADMIN \
-          --net management \
-          --ip 10.99.0.252 \
+          --net host \
           quay.io/coreos/dnsmasq -d -q \
           --interface=eth1 \
           --dhcp-range=10.99.0.100,10.99.0.150,infinite \
