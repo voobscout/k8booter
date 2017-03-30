@@ -278,8 +278,8 @@ coreos:
         WantedBy=multi-user.target
 
     - name: pushcfg.service
-      enable: true
-      command: start
+      enable: false
+      # command: start
       content: |
         [Unit]
         After=matchbox-dnsmasq.service
