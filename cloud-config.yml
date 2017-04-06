@@ -347,8 +347,8 @@ coreos:
         WantedBy=multi-user.target
 
     - name: tshark.service
-      enable: true
-      command: start
+      enable: false
+      # command: start
       content: |
         [Unit]
         After=docker.service network-online.target
