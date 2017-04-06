@@ -1,4 +1,4 @@
-# require 'pry'
+# -*- enh-ruby -*-
 require 'sinatra'
 require 'cocaine'
 require 'pathname'
@@ -171,8 +171,5 @@ class Pushcfg < Sinatra::Base
     slash.split('/').last
   end
 
-  def arp
-    #
-  end
   run!
 end
