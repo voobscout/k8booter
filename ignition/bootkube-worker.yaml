@@ -91,12 +91,14 @@ systemd:
         Requires=network-online.target
         Requires=docker.service
         Description=Ask matchbox for config
+
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/usr/bin/curl http://10.99.0.254:8790/node
+        ExecStart=/usr/bin/curl http://10.99.0.250:8790/node
+
         [Install]
-        WantedBy=multi-user.target
+        RequiredBy=multi-user.target
 
 storage:
   {{ if index . "pxe" }}
@@ -105,8 +107,9 @@ storage:
       wipe_table: true
       partitions:
         - label: ROOT
+          number: 1
           start: 0
-          size: 10485760
+          size: 10000MB
         - label: GLUSTERFS
           start: 0
           size: 0
