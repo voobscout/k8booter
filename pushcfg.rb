@@ -141,7 +141,7 @@ class Pushcfg < Sinatra::Base
   end
 
   def cmd
-    {controller: 'sudo mkdir -p /opt/bootkube && sudo mv /home/core/assets /opt/bootkube/assets && sudo systemctl start bootkube',
+    {controller: 'sudo mkdir -p /etc/kubernetes && sudo mv /home/core/assets/auth/kubeconfig /etc/kubernetes/kubeconfig && sudo mkdir -p /opt/bootkube && sudo mv /home/core/assets /opt/bootkube/assets && sudo systemctl start bootkube',
      node: 'sudo mkdir -p /etc/kubernetes && sudo mv /home/core/kubeconfig /etc/kubernetes/kubeconfig'}
   end
 

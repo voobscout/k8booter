@@ -2,7 +2,7 @@
 ---
 coreos:
   update:
-    group: stable
+    group: alpha
     reboot-strategy: best-effort
   units:
     - name: 00-eth1-static.network
@@ -140,6 +140,9 @@ coreos:
         -o parent=eth1 \
         management
 
+        # --aux-address "DefaultGatewayIPv4=10.99.0.254" <-- useful for actual lans
+        # -o com.docker.network.driver.mtu=1450
+
     - name: weave-install.service
       command: start
       enable: true
@@ -181,27 +184,13 @@ coreos:
         RemainAfterExit=yes
         ExecStart=/opt/bin/matchbox_first_run.sh
 
-    - name: matchbox-setup.service
-      command: start
-      content: |
-        [Unit]
-        Description=Populate matchbox assets
-        Requires=matchbox-install.service
-        After=matchbox-install.service
-        Before=matchbox.service
-
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        ExecStart=/opt/bin/matchbox_setup.sh
-
     - name: bootkube-setup.service
       command: start
       content: |
         [Unit]
         Description=Populate matchbox assets with bootkube
-        Requires=matchbox-setup.service
-        After=matchbox-setup.service
+        Requires=matchbox-install.service
+        After=matchbox-install.service
 
         [Service]
         Type=oneshot
@@ -419,19 +408,11 @@ write_files:
       mkdir -p /var/lib/matchbox/assets
       mv ./coreos /var/lib/matchbox/assets
 
-      logger -t MB_1st_run -s 'installed matchbox...'
-
-  - path: /opt/bin/matchbox_setup.sh
-    permissions: 0755
-    owner: 'root:root'
-    content: |
-      #!/usr/bin/env bash
-
       git clone https://github.com/voobscout/k8booter.git /mnt/tmp_install/k8booter
       cp --recursive /mnt/tmp_install/k8booter/ignition /var/lib/matchbox
       cp --recursive /mnt/tmp_install/k8booter/profiles /var/lib/matchbox
 
-      logger -t MB_1st_run -s 'cloned matchbox config from git repo...'
+      logger -t MB_1st_run -s 'installed matchbox...'
 
   - path: /opt/bin/bootkube_setup.sh
     permissions: 0755
@@ -441,8 +422,8 @@ write_files:
 
       PATH=/opt/bin:$PATH
       mkdir -p /mnt/tmp_install/bk
-      cd /mnt/tmp_install/bk && \
-      wget -c https://github.com/kubernetes-incubator/bootkube/releases/download/v0.3.11/bootkube.tar.gz && \
+      cd /mnt/tmp_install/bk
+      wget -c $(curl -s https://api.github.com/repos/kubernetes-incubator/bootkube/releases/latest | jq -r '.assets[].browser_download_url')
       tar xvzf bootkube.tar.gz
       mv /mnt/tmp_install/bk/bin/linux/* /opt/bin/
 
@@ -464,26 +445,6 @@ write_files:
       # done
 
       logger -t MB_1st_run -s 'bootkube installed...'
-
-  - path: /opt/bin/kubeconfig-install.sh
-    permissions: 0755
-    owner: 'root:root'
-    content: |
-      #!/usr/bin/env bash
-      cd /mnt/tmp_install/bk
-      for node in 'node1' 'node2' 'node3'; do
-        scp assets/auth/kubeconfig core@$node.gsm-port.com:/home/core/kubeconfig
-        ssh core@$node.gsm-port.com 'sudo mkdir -p /etc/kubernetes && sudo mv kubeconfig /etc/kubernetes/kubeconfig'
-      done
-
-  - path: /opt/bin/kubeconfig-controller-install.sh
-    permissions: 0755
-    owner: 'root:root'
-    content: |
-      #!/usr/bin/env bash
-      cd /mnt/tmp_install/bk
-      scp -r assets core@node1.gsm-port.com:/home/core
-      ssh core@node1.gsm-port.com 'sudo mkdir -p /opt/bootkube && sudo mv assets /opt/bootkube/assets && sudo systemctl start bootkube'
 
   - path: /etc/modules-load.d/fuse.conf
     permissions: 0644
@@ -571,11 +532,3 @@ hostname: "matchbox.gsm-port.com"
 ssh_authorized_keys:
   - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDUKXJgShJMrBFi6VvKCsCJO9c1wLA3ugL3LAJGsRO9KXdZGmLC74/s0KVw4uaWHoTz91qLPdnplSdLU3KDK7loIdKRBR8E4KJ1MiZKGIj7F9NsniiNetQkKvUazrhRx8nFOAYSPD4znkhrh53nXnsI2WDACt0CGNYX33hV3J/kblWYit/wcIEtJg1ivFmBrljtAMZpS2mBpAK0kySCY2BP+Ph8x+6EuCkH1w2J4Moa0fYkibF3K7O4cmcWAtD53eyr8YN4JKvAwTe+uXVsdFDUNkZvCdOLTDDRd7t7C+qL3nbJMv5jVoED0bBBfn7NfEfyqLOzXHmE4bfuMo7KBlH7 vod@agrajag.0.njk.li"
 ...
-# ExecStartPre=/usr/bin/docker exec -ti softethervpn ip addr
-# ExecStart=/usr/bin/docker exec -ti softethervpn /bin/bash -c "TERM=linux tail -f /var/log/vpnserver/**/*.log"
-
-# -o com.docker.network.bridge.name=management management
-# ExecStart=/usr/sbin/brctl addif management eth1
-# -o macvlan_mode=bridge
-# --aux-address "DefaultGatewayIPv4=10.99.0.254" <-- useful for actual lans
-# -o com.docker.network.driver.mtu=1450 \
