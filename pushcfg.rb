@@ -1,8 +1,9 @@
 # -*- enh-ruby -*-
-require 'sinatra'
-require 'cocaine'
-require 'pathname'
-require 'json'
+%w(sinatra
+   cocaine
+   open-uri
+   pathname
+   json).each(&method(:require))
 
 module Cfg
   def install
@@ -53,30 +54,13 @@ module Cfg
   end
 
   def bk_controller
-    {"id"=>"node1",
-     "name"=>"Controller Node",
-     "profile"=>"bootkube-controller",
-     "selector"=>{"mac"=>""},
-     "metadata"=>
-       {"domain_name"=>"",
-        "etcd_initial_cluster"=>"node1=http://node1.example.com:2380",
-        "etcd_name"=>"node1",
-        "k8s_dns_service_ip"=>"10.3.0.10",
-        "pxe"=>"true",
-        "ssh_authorized_keys"=> [""]}}
+    url = 'https://raw.githubusercontent.com/coreos/matchbox/master/examples/groups/bootkube/node1.json'
+    @template_controller ||= JSON.parse(open(url).read)
   end
 
   def bk_node
-    {"id"=>"node2",
-     "name"=>"Worker Node",
-     "profile"=>"bootkube-worker",
-     "selector"=>{"mac"=>"52:54:00:b2:2f:86"},
-     "metadata"=>
-       {"domain_name"=>"node2.example.com",
-        "etcd_endpoints"=>"node1.example.com:2379",
-        "k8s_dns_service_ip"=>"10.3.0.10",
-        "pxe"=>"true",
-        "ssh_authorized_keys"=> [""]}}
+    url = 'https://raw.githubusercontent.com/coreos/matchbox/master/examples/groups/bootkube/node2.json'
+    @template_node ||= JSON.parse(open(url).read)
   end
 
   def domain
@@ -134,7 +118,7 @@ class Pushcfg < Sinatra::Base
 
   def setvars
     @ip = @env['REMOTE_ADDR']
-    @method = strip(@env['REQUEST_PATH'])
+    @method = @env['REQUEST_PATH'].split('/').last
 
     ssh_opt = '-oStrictHostKeyChecking=no'
     @scp = Cocaine::CommandLine.new("scp", ":opt -r :src :dst")
@@ -149,26 +133,16 @@ class Pushcfg < Sinatra::Base
                    opt: ssh_opt,
                    dst: ('core@' + @ip)
                    }
-
-    @docker = Cocaine::CommandLine.new("/usr/bin/docker", "-d --rm -ti --volumes-from pushcfg ruby :cmd")
   end
 
   def run_cmd
     @scp.run(@scp_command)
     @ssh.run(@ssh_command.merge(cmd: cmd[@method.to_sym]))
-    # @docker.run(cmd: @scp.command(@scp_command))
-    # @docker.run(cmd: @ssh.command(@ssh_command.merge(cmd: cmd[@method.to_sym])))
-    # puts @docker.command(cmd: @scp.command(@scp_command))
-    # puts @docker.command(cmd: @ssh.command(@ssh_command.merge(cmd: cmd[@method.to_sym])))
   end
 
   def cmd
     {controller: 'sudo mkdir -p /opt/bootkube && sudo mv /home/core/assets /opt/bootkube/assets && sudo systemctl start bootkube',
      node: 'sudo mkdir -p /etc/kubernetes && sudo mv /home/core/kubeconfig /etc/kubernetes/kubeconfig'}
-  end
-
-  def strip slash
-    slash.split('/').last
   end
 
   run!

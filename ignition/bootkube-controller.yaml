@@ -28,8 +28,11 @@ systemd:
       contents: |
         [Unit]
         Description=Watch for kubeconfig
+        Requires=pushcfg-client.service
+
         [Path]
         PathExists=/etc/kubernetes/kubeconfig
+
         [Install]
         WantedBy=multi-user.target
     - name: wait-for-dns.service
@@ -98,9 +101,7 @@ systemd:
       contents: |
         [Unit]
         After=network-online.target
-        After=docker.service
         Requires=network-online.target
-        Requires=docker.service
         Description=ask for kube config
 
         [Service]
