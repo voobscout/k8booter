@@ -61,14 +61,8 @@ systemd:
         Description=Kubelet via Hyperkube ACI
 
         [Service]
-        Environment="RKT_OPTS=--uuid-file-save=/var/run/kubelet-pod.uuid \
-          --volume=resolv,kind=host,source=/etc/resolv.conf \
-          --mount volume=resolv,target=/etc/resolv.conf \
-          --volume var-lib-cni,kind=host,source=/var/lib/cni \
-          --mount volume=var-lib-cni,target=/var/lib/cni \
-          --volume var-log,kind=host,source=/var/log \
-          --mount volume=var-log,target=/var/log"
         EnvironmentFile=/etc/kubernetes/kubelet.env
+
         ExecStartPre=/bin/mkdir -p /etc/kubernetes/manifests
         ExecStartPre=/bin/mkdir -p /srv/kubernetes/manifests
         ExecStartPre=/bin/mkdir -p /etc/kubernetes/checkpoint-secrets
@@ -102,10 +96,12 @@ systemd:
       contents: |
         [Unit]
         Description=Bootstrap a Kubernetes control plane with a temp api-server
+
         [Service]
         Type=simple
         WorkingDirectory=/opt/bootkube
         ExecStart=/opt/bootkube/bootkube-start
+
     - name: pushcfg-client.service
       enabled: true
       contents: |
@@ -120,7 +116,7 @@ systemd:
         ExecStart=/usr/bin/curl http://10.99.0.250:8790/controller
 
         [Install]
-        RequiredBy=multi-user.target
+        WantedBy=multi-user.target
 
 storage:
   {{ if index . "pxe" }}
@@ -152,7 +148,7 @@ storage:
       contents:
         inline: |
           KUBELET_IMAGE_URL="quay.io/coreos/hyperkube"
-          KUBELET_IMAGE_TAG="v1.6.1_coreos.0"
+          KUBELET_IMAGE_TAG="v1.5.6_coreos.0"
           RKT_RUN_ARGS="--uuid-file-save=/var/run/kubelet-pod.uuid --volume=resolv,kind=host,source=/etc/resolv.conf --mount volume=resolv,target=/etc/resolv.conf --volume var-lib-cni,kind=host,source=/var/lib/cni --mount volume=var-lib-cni,target=/var/lib/cni --volume var-log,kind=host,source=/var/log --mount volume=var-log,target=/var/log"
 
     - path: /etc/hostname
