@@ -172,7 +172,7 @@ coreos:
       command: start
       content: |
         [Unit]
-        Description=Download and install latest tectonic from coreOS
+        Description=Download and install latest Matchbox from coreOS
         After=docker.service
         Requires=docker.service bridge-management-eth1.service
 
